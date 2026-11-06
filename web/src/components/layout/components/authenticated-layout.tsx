@@ -42,17 +42,22 @@ export function AuthenticatedLayout(props: AuthenticatedLayoutProps) {
   return (
     <LayoutProvider>
       <SearchProvider>
-        <SidebarProvider defaultOpen={defaultOpen} className='flex-col'>
+        {/* Console redesign: full-height sidebar (brand at its top) on the
+            left; header and page content share the column on the right. */}
+        <SidebarProvider defaultOpen={defaultOpen}>
           <SkipToMain />
-          <AppHeader />
-          <div className='flex min-h-0 w-full flex-1'>
-            <AppSidebar />
+          <AppSidebar />
+          <div
+            className={cn(
+              'flex h-svh min-w-0 flex-1 flex-col',
+              'md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ms-0 md:peer-data-[variant=inset]:h-[calc(100svh-(var(--spacing)*4))] md:peer-data-[variant=inset]:overflow-hidden md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:ring-1 md:peer-data-[variant=inset]:ring-border md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ms-2'
+            )}
+          >
+            <AppHeader />
             <SidebarInset
               className={cn(
                 '@container/content',
-                'h-[calc(100svh-var(--app-header-height,0px))]',
-                'min-h-0 overflow-hidden',
-                'peer-data-[variant=inset]:h-[calc(100svh-var(--app-header-height,0px)-(var(--spacing)*4))]'
+                'min-h-0 flex-1 overflow-hidden'
               )}
             >
               {props.children ?? <AnimatedOutlet />}

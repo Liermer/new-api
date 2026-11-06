@@ -51,9 +51,7 @@ export function SystemBrand(props: SystemBrandProps) {
   const { logo } = useSystemConfig()
 
   const variant = props.variant ?? 'sidebar'
-  const name = status?.system_name || props.defaultName || 'New API'
-  const version =
-    status?.version || props.defaultVersion || t('Unknown version')
+  const name = status?.system_name || props.defaultName || 'PorticoLLM'
 
   if (variant === 'inline') {
     return (
@@ -94,7 +92,10 @@ export function SystemBrand(props: SystemBrandProps) {
           </div>
           <div className='grid flex-1 text-start text-sm leading-tight group-data-[collapsible=icon]:hidden'>
             <span className='truncate font-semibold'>{name}</span>
-            <span className='truncate text-xs'>{version}</span>
+            {/* The version lives in the header's update action. */}
+            <span className='text-muted-foreground truncate font-mono text-[11px] tracking-[0.06em] uppercase'>
+              {t('Console')}
+            </span>
           </div>
         </SidebarMenuButton>
       </SidebarMenuItem>

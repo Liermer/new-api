@@ -39,7 +39,29 @@ type TooltipLineItem = {
   shapeSize?: number
 }
 
+/**
+ * Console redesign palette, ordered to match `--chart-1…5` (cyan, logo pink,
+ * violet, amber, green) and extended with five more hues. Mid-lightness
+ * values so series read on both the dark and light canvas.
+ */
+const CONSOLE_CHART_COLORS = [
+  '#00c3db',
+  '#e670ac',
+  '#9887e8',
+  '#e9ab2b',
+  '#2fc183',
+  '#4087de',
+  '#f48a64',
+  '#75d1c5',
+  '#9b6ca5',
+  '#92a0b1',
+]
+
 export function getDashboardChartColors(domainLength: number): string[] {
+  if (domainLength <= CONSOLE_CHART_COLORS.length) {
+    return [...CONSOLE_CHART_COLORS]
+  }
+
   const scheme =
     vchartDefaultDataScheme.find(
       (item) => !item.maxDomainLength || domainLength <= item.maxDomainLength

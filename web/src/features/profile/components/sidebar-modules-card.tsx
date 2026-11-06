@@ -60,23 +60,8 @@ export function SidebarModulesCard() {
   const setUser = useAuthStore((s) => s.auth.setUser)
 
   const sectionDefs: SectionDef[] = [
-    {
-      key: 'chat',
-      title: t('Chat Area'),
-      description: t('Playground and chat functions'),
-      modules: [
-        {
-          key: 'playground',
-          title: t('Playground'),
-          description: t('AI model testing environment'),
-        },
-        {
-          key: 'chat',
-          title: t('Chat'),
-          description: t('Chat session management'),
-        },
-      ],
-    },
+    // Console redesign: the Chat / Playground area is hidden from the
+    // sidebar, so its visibility toggles are not offered here either.
     {
       key: 'console',
       title: t('Console Area'),
@@ -235,7 +220,7 @@ export function SidebarModulesCard() {
             <LayoutDashboard />
           </IconBadge>
           <div className='min-w-0'>
-            <CardTitle className='text-lg tracking-tight sm:text-xl'>
+            <CardTitle className='text-base font-semibold tracking-tight'>
               {t('Sidebar Personal Settings')}
             </CardTitle>
             <CardDescription className='text-xs sm:text-sm'>

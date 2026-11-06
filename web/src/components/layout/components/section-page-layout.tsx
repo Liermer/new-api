@@ -16,6 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
+import { useLocation, useRouter } from '@tanstack/react-router'
 import {
   Children,
   isValidElement,
@@ -26,6 +27,26 @@ import {
 
 import { Main } from './main'
 import { PageFooterProvider } from './page-footer'
+
+/** The route path as a quiet mono eyebrow (console redesign). */
+function RoutePathEyebrow() {
+  // Pages are also rendered in isolation (tests, previews) without a router.
+  const router = useRouter({ warn: false })
+  if (!router) return null
+  return <RoutePathEyebrowText />
+}
+
+function RoutePathEyebrowText() {
+  const pathname = useLocation({ select: (location) => location.pathname })
+  return (
+    <p
+      aria-hidden='true'
+      className='text-muted-foreground mb-0.5 truncate font-mono text-[11px] tracking-[0.06em]'
+    >
+      {pathname}
+    </p>
+  )
+}
 
 type SlotProps = { children?: ReactNode }
 
@@ -93,7 +114,9 @@ export function SectionPageLayout(props: SectionPageLayoutProps) {
                   : 'min-w-0 flex-1'
               }
             >
-              <h2 className='truncate text-base font-bold tracking-tight sm:text-lg'>
+              {/* Console redesign: the route path as a quiet mono eyebrow. */}
+              {breadcrumb == null && <RoutePathEyebrow />}
+              <h2 className='truncate text-lg font-semibold tracking-tight sm:text-xl'>
                 {title}
               </h2>
             </div>
