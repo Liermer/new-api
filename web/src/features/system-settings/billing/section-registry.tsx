@@ -24,7 +24,8 @@ import { QuotaSettingsSection } from '../general/quota-settings-section'
 import { PaymentSettingsSection } from '../integrations/payment-settings-section'
 import { RatioSettingsCard } from '../models/ratio-settings-card'
 import type { BillingSettings } from '../types'
-import { createSectionRegistry } from '../utils/section-registry'
+import { createSectionContent } from '../utils/section-registry'
+import type { BillingSectionId } from './section-nav'
 
 const getModelDefaults = (settings: BillingSettings) => ({
   ModelPrice: settings.ModelPrice,
@@ -56,7 +57,6 @@ const getGroupDefaults = (settings: BillingSettings) => ({
 const BILLING_SECTIONS = [
   {
     id: 'quota',
-    titleKey: 'Quota Settings',
     build: (settings: BillingSettings) => (
       <QuotaSettingsSection
         defaultValues={{
@@ -81,7 +81,6 @@ const BILLING_SECTIONS = [
   },
   {
     id: 'currency',
-    titleKey: 'Currency & Display',
     build: (settings: BillingSettings) => (
       <PricingSection
         defaultValues={{
@@ -104,7 +103,6 @@ const BILLING_SECTIONS = [
   },
   {
     id: 'model-pricing',
-    titleKey: 'Model Pricing',
     build: (settings: BillingSettings) => (
       <RatioSettingsCard
         titleKey='Model Pricing'
@@ -117,7 +115,6 @@ const BILLING_SECTIONS = [
   },
   {
     id: 'group-pricing',
-    titleKey: 'Group Pricing',
     build: (settings: BillingSettings) => (
       <RatioSettingsCard
         titleKey='Group Pricing'
@@ -130,7 +127,6 @@ const BILLING_SECTIONS = [
   },
   {
     id: 'payment',
-    titleKey: 'Payment Gateway',
     build: (settings: BillingSettings) => (
       <PaymentSettingsSection
         defaultValues={{
@@ -190,7 +186,6 @@ const BILLING_SECTIONS = [
   },
   {
     id: 'checkin',
-    titleKey: 'Check-in Rewards',
     build: (settings: BillingSettings) => (
       <CheckinSettingsSection
         defaultValues={{
@@ -203,20 +198,7 @@ const BILLING_SECTIONS = [
   },
 ] as const
 
-export type BillingSectionId = (typeof BILLING_SECTIONS)[number]['id']
-
-const billingRegistry = createSectionRegistry<
+export const getBillingSectionContent = createSectionContent<
   BillingSectionId,
   BillingSettings
->({
-  sections: BILLING_SECTIONS,
-  defaultSection: 'quota',
-  basePath: '/system-settings/billing',
-  urlStyle: 'path',
-})
-
-export const BILLING_SECTION_IDS = billingRegistry.sectionIds
-export const BILLING_DEFAULT_SECTION = billingRegistry.defaultSection
-export const getBillingSectionNavItems = billingRegistry.getSectionNavItems
-export const getBillingSectionContent = billingRegistry.getSectionContent
-export const getBillingSectionMeta = billingRegistry.getSectionMeta
+>(BILLING_SECTIONS)

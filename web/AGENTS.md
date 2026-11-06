@@ -15,7 +15,7 @@
 | 数据与请求 | @tanstack/react-query、axios、Zustand                             |
 | 路由       | @tanstack/react-router                                            |
 | 表格与列表 | @tanstack/react-table、@tanstack/react-virtual                    |
-| 国际化     | i18next、react-i18next、i18next-browser-languagedetector          |
+| 国际化     | i18next、react-i18next（界面仅简体中文）                          |
 | 日期       | Day.js                                                            |
 | UI 与样式  | Base UI、Hugeicons、Tailwind CSS、clsx / class-variance-authority |
 | 表单       | React Hook Form、Zod                                              |
@@ -118,6 +118,8 @@
 - **React**：合理使用 `useMemo`、`useCallback` 减少无效重渲染；避免在渲染路径中创建新对象/数组；必要时使用 `React.memo`。
 - **代码分割**：使用 `React.lazy` 与动态 `import` 做按需加载，控制首屏与路由体积。
 - **资源**：图片选用合适格式与尺寸，大列表考虑虚拟滚动（如 @tanstack/react-virtual），大量图片考虑懒加载。
+- **首屏边界**：路由文件中 `beforeLoad`、`validateSearch`、`loader` 用到的依赖不会被拆分，会进入每个访客都要下载的主包。这些位置只能依赖轻量模块（如 `section-nav.ts`），不得静态导入面板、图表、编辑器、Markdown 等重模块；`components/layout` 的导航配置同样如此。
+- **副作用白名单**：`package.json` 的 `sideEffects` 是白名单，其余模块在生产构建中可被整体摇树。新增只靠顶层副作用生效、以裸 `import './x'` 引入的模块时，必须登记到该列表，否则开发环境正常而生产环境丢失。
 
 ### 3.5 状态管理
 
@@ -226,3 +228,4 @@
 - **2026-01-31**：在 3.2 中补充「类型检查」要求：改动 TS/TSX 后须执行 typecheck 并修复至无错。
 - **2026-06-21**：在 3.2 中补充「Lint 检查」要求：完成代码改动前须修复所涉及文件的所有 lint error。
 - **2026-09-06**：明确组件复用的强制检索流程、业务封装优先级、新增条件、常用入口及审查要求。
+- **2026-11-06**：界面仅保留简体中文；在 3.4 中补充首屏边界与副作用白名单约定。

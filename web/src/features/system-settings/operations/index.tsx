@@ -22,9 +22,9 @@ import { SettingsPage } from '../components/settings-page'
 import type { OperationsSettings } from '../types'
 import {
   OPERATIONS_DEFAULT_SECTION,
-  getOperationsSectionContent,
   getOperationsSectionMeta,
-} from './section-registry.tsx'
+} from './section-nav'
+import { getOperationsSectionContent } from './section-registry.tsx'
 
 const defaultOperationsSettings: OperationsSettings = {
   DefaultCollapseSidebar: false,

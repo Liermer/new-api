@@ -26,7 +26,10 @@ type countingFrontendFS struct {
 }
 
 func (f *countingFrontendFS) Open(name string) (http.File, error) {
-	f.opens.Add(1)
+	// Looking for a precompressed sibling is not a read of the file itself.
+	if !strings.HasSuffix(name, ".br") {
+		f.opens.Add(1)
+	}
 	return f.ServeFileSystem.Open(name)
 }
 
@@ -103,4 +106,67 @@ func TestServeFrontendFilesCompressesEachFileOnce(t *testing.T) {
 	missing := performFrontendRequest(router, http.MethodGet, "/static/js/missing.js", "gzip")
 	assert.Equal(t, http.StatusTeapot, missing.Code)
 	assert.Equal(t, "fallback", missing.Body.String())
+}
+
+func TestServeFrontendFilesPrefersPrecompressedBrotli(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	frontendDir := t.TempDir()
+	script := []byte(strings.Repeat("export const answer = 42;\n", 400))
+	brotliBody := []byte("precompressed brotli bytes")
+	unpairedStyle := []byte(strings.Repeat("body { color: red }\n", 400))
+	require.NoError(t, os.MkdirAll(filepath.Join(frontendDir, "static", "js"), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(frontendDir, "static", "js", "app.js"), script, 0o644))
+	require.NoError(t, os.WriteFile(filepath.Join(frontendDir, "static", "js", "app.js.br"), brotliBody, 0o644))
+	require.NoError(t, os.WriteFile(filepath.Join(frontendDir, "static", "style.css"), unpairedStyle, 0o644))
+	frontendFS := static.LocalFile(frontendDir, false)
+
+	router := gin.New()
+	router.NoRoute(ServeFrontendFiles(frontendFS))
+
+	brotli := performFrontendRequest(router, http.MethodGet, "/static/js/app.js", "gzip, deflate, br")
+	require.Equal(t, http.StatusOK, brotli.Code)
+	assert.Equal(t, "br", brotli.Header().Get("Content-Encoding"))
+	assert.Equal(t, "Accept-Encoding", brotli.Header().Get("Vary"))
+	assert.Contains(t, brotli.Header().Get("Content-Type"), "javascript", "the type comes from the original file, not the .br name")
+	assert.Equal(t, strconv.Itoa(len(brotliBody)), brotli.Header().Get("Content-Length"))
+	assert.Equal(t, brotliBody, brotli.Body.Bytes())
+
+	head := performFrontendRequest(router, http.MethodHead, "/static/js/app.js", "br")
+	assert.Equal(t, http.StatusOK, head.Code)
+	assert.Equal(t, "br", head.Header().Get("Content-Encoding"))
+	assert.Equal(t, strconv.Itoa(len(brotliBody)), head.Header().Get("Content-Length"))
+	assert.Empty(t, head.Body.Bytes())
+
+	gzipOnly := performFrontendRequest(router, http.MethodGet, "/static/js/app.js", "gzip")
+	require.Equal(t, http.StatusOK, gzipOnly.Code)
+	assert.Equal(t, "gzip", gzipOnly.Header().Get("Content-Encoding"))
+
+	noBuildOutput := performFrontendRequest(router, http.MethodGet, "/static/style.css", "br, gzip")
+	require.Equal(t, http.StatusOK, noBuildOutput.Code)
+	assert.Equal(t, "gzip", noBuildOutput.Header().Get("Content-Encoding"), "a file without a .br sibling falls back to gzip")
+}
+
+func TestCacheMarksHashedBuildFilesImmutable(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.NoRoute(Cache(), func(c *gin.Context) {
+		c.Status(http.StatusOK)
+	})
+
+	tests := []struct {
+		target string
+		want   string
+	}{
+		{target: "/", want: "no-cache"},
+		{target: "/static/js/index.2b8f2d494c.js", want: "public, max-age=31536000, immutable"},
+		{target: "/static/font/ibm-plex-sans-latin-400-normal.13a15bcdfe.woff2", want: "public, max-age=31536000, immutable"},
+		{target: "/logo.png", want: "max-age=604800"},
+		{target: "/staticfile.js", want: "max-age=604800"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.target, func(t *testing.T) {
+			response := performFrontendRequest(router, http.MethodGet, tt.target, "")
+			assert.Equal(t, tt.want, response.Header().Get("Cache-Control"))
+		})
+	}
 }

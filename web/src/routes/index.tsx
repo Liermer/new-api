@@ -19,7 +19,20 @@ For commercial licensing, please contact support@quantumnous.com
 import { createFileRoute } from '@tanstack/react-router'
 
 import { Home } from '@/features/home'
+import {
+  homePageContentQueryOptions,
+  readCachedHomePageContent,
+} from '@/features/home/query'
 
 export const Route = createFileRoute('/')({
+  // Runs alongside the route chunk download. Returning visitors render what
+  // they saw last time and refresh behind it; only a first visit has to wait,
+  // because showing the default landing could flash over a custom home page.
+  loader: ({ context }) => {
+    const pending = context.queryClient.prefetchQuery(
+      homePageContentQueryOptions
+    )
+    return readCachedHomePageContent() === undefined ? pending : undefined
+  },
   component: Home,
 })

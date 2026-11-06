@@ -20,12 +20,12 @@ import { RateLimitSection } from '../request-limits/rate-limit-section'
 import { SSRFSection } from '../request-limits/ssrf-section'
 import { TokenLimitSection } from '../request-limits/token-limit-section'
 import type { SecuritySettings } from '../types'
-import { createSectionRegistry } from '../utils/section-registry'
+import { createSectionContent } from '../utils/section-registry'
+import type { SecuritySectionId } from './section-nav'
 
 const SECURITY_SECTIONS = [
   {
     id: 'rate-limit',
-    titleKey: 'Rate Limiting',
     build: (settings: SecuritySettings) => (
       <RateLimitSection
         defaultValues={{
@@ -43,7 +43,6 @@ const SECURITY_SECTIONS = [
 
   {
     id: 'ssrf',
-    titleKey: 'SSRF Protection',
     build: (settings: SecuritySettings) => (
       <SSRFSection
         defaultValues={{
@@ -67,7 +66,6 @@ const SECURITY_SECTIONS = [
   },
   {
     id: 'token-limits',
-    titleKey: 'Token Limits',
     build: (settings: SecuritySettings) => (
       <TokenLimitSection
         defaultValues={{
@@ -79,20 +77,7 @@ const SECURITY_SECTIONS = [
   },
 ] as const
 
-export type SecuritySectionId = (typeof SECURITY_SECTIONS)[number]['id']
-
-const securityRegistry = createSectionRegistry<
+export const getSecuritySectionContent = createSectionContent<
   SecuritySectionId,
   SecuritySettings
->({
-  sections: SECURITY_SECTIONS,
-  defaultSection: 'rate-limit',
-  basePath: '/system-settings/security',
-  urlStyle: 'path',
-})
-
-export const SECURITY_SECTION_IDS = securityRegistry.sectionIds
-export const SECURITY_DEFAULT_SECTION = securityRegistry.defaultSection
-export const getSecuritySectionNavItems = securityRegistry.getSectionNavItems
-export const getSecuritySectionContent = securityRegistry.getSectionContent
-export const getSecuritySectionMeta = securityRegistry.getSectionMeta
+>(SECURITY_SECTIONS)

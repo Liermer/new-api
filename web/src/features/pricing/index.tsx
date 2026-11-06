@@ -16,7 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useCallback, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { PublicLayout } from '@/components/layout'
@@ -30,11 +30,16 @@ import {
   PricingSidebar,
   PricingToolbar,
   ModelCardGrid,
-  ModelDetailsDrawer,
 } from './components'
 import { EXCLUDED_GROUPS, VIEW_MODES } from './constants'
 import { useFilters } from './hooks/use-filters'
 import { usePricingData } from './hooks/use-pricing-data'
+
+const ModelDetailsDrawer = lazy(() =>
+  import('./components/model-details').then((module) => ({
+    default: module.ModelDetailsDrawer,
+  }))
+)
 
 export function Pricing() {
   const { t } = useTranslation()
@@ -255,26 +260,28 @@ export function Pricing() {
           </div>
 
           {selectedModel && (
-            <ModelDetailsDrawer
-              open={Boolean(selectedModel)}
-              onOpenChange={(open) => {
-                if (!open) setSelectedModelName(null)
-              }}
-              model={selectedModel}
-              groupRatio={groupRatio || {}}
-              usableGroup={usableGroup || {}}
-              endpointMap={
-                (endpointMap as Record<
-                  string,
-                  { path?: string; method?: string }
-                >) || {}
-              }
-              autoGroups={autoGroups || []}
-              priceRate={priceRate ?? 1}
-              usdExchangeRate={usdExchangeRate ?? 1}
-              tokenUnit={tokenUnit}
-              showRechargePrice={showRechargePrice}
-            />
+            <Suspense fallback={null}>
+              <ModelDetailsDrawer
+                open={Boolean(selectedModel)}
+                onOpenChange={(open) => {
+                  if (!open) setSelectedModelName(null)
+                }}
+                model={selectedModel}
+                groupRatio={groupRatio || {}}
+                usableGroup={usableGroup || {}}
+                endpointMap={
+                  (endpointMap as Record<
+                    string,
+                    { path?: string; method?: string }
+                  >) || {}
+                }
+                autoGroups={autoGroups || []}
+                priceRate={priceRate ?? 1}
+                usdExchangeRate={usdExchangeRate ?? 1}
+                tokenUnit={tokenUnit}
+                showRechargePrice={showRechargePrice}
+              />
+            </Suspense>
           )}
         </PageTransition>
       </div>

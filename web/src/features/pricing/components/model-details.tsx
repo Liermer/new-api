@@ -30,7 +30,7 @@ import {
   Sparkles,
   Timer,
 } from 'lucide-react'
-import { useMemo } from 'react'
+import { lazy, Suspense, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { CopyButton } from '@/components/copy-button'
@@ -102,8 +102,18 @@ import type {
 } from '../types'
 import { DynamicPricingBreakdown } from './dynamic-pricing-breakdown'
 import { ModelBillingModeBadge } from './model-billing-mode-badge'
-import { ModelDetailsApi } from './model-details-api'
-import { ModelDetailsPerformance } from './model-details-performance'
+
+const ModelDetailsApi = lazy(() =>
+  import('./model-details-api').then((module) => ({
+    default: module.ModelDetailsApi,
+  }))
+)
+
+const ModelDetailsPerformance = lazy(() =>
+  import('./model-details-performance').then((module) => ({
+    default: module.ModelDetailsPerformance,
+  }))
+)
 
 // ----------------------------------------------------------------------------
 // Local UI helpers
@@ -1548,14 +1558,18 @@ export function ModelDetailsContent(props: ModelDetailsContentProps) {
         </TabsContent>
 
         <TabsContent value='performance' className='outline-none'>
-          <ModelDetailsPerformance model={props.model} />
+          <Suspense fallback={<Skeleton className='h-64 w-full rounded-xl' />}>
+            <ModelDetailsPerformance model={props.model} />
+          </Suspense>
         </TabsContent>
 
         <TabsContent value='api' className='outline-none'>
-          <ModelDetailsApi
-            model={props.model}
-            endpointMap={props.endpointMap}
-          />
+          <Suspense fallback={<Skeleton className='h-64 w-full rounded-xl' />}>
+            <ModelDetailsApi
+              model={props.model}
+              endpointMap={props.endpointMap}
+            />
+          </Suspense>
         </TabsContent>
       </Tabs>
     </div>

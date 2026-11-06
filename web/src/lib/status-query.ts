@@ -114,6 +114,18 @@ export function readCachedStatus(): StatusData | null {
   }
 }
 
+/**
+ * Whether this status sends the visitor to the setup wizard. Nothing waits on
+ * it: it only applies once per install, and blocking routes on it would cost
+ * every visitor a round trip.
+ */
+export function needsSetupRedirect(
+  status: StatusData | null | undefined,
+  pathname: string
+): boolean {
+  return status?.setup === false && !pathname.startsWith('/setup')
+}
+
 /** Persist the latest status so the next cold start can render before fetching. */
 function writeCachedStatus(status: StatusData | null): void {
   try {

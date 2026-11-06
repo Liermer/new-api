@@ -26,7 +26,11 @@ import { applyFaviconToDom } from '@/lib/dom-utils'
 import '@/lib/dayjs'
 import { initializeFrontendCache } from '@/lib/frontend-cache'
 import { createAppQueryClient } from '@/lib/query-client'
-import { readCachedStatus, statusQueryOptions } from '@/lib/status-query'
+import {
+  needsSetupRedirect,
+  readCachedStatus,
+  statusQueryOptions,
+} from '@/lib/status-query'
 
 import { DirectionProvider } from './context/direction-provider'
 import { FontProvider } from './context/font-provider'
@@ -92,6 +96,9 @@ if (!rootElement) {
       .then((s) => {
         if (s?.system_name) apply(s.system_name as string)
         if (s?.logo) applyFaviconToDom(s.logo as string)
+        if (needsSetupRedirect(s, location.pathname)) {
+          void router.navigate({ to: '/setup', replace: true })
+        }
       })
       .catch(() => {
         /* empty */
@@ -100,6 +107,13 @@ if (!rootElement) {
     /* empty */
   }
 })()
+// The router only starts a route's chunks after every beforeLoad guard has
+// finished. Start them now so chunk downloads overlap the guards' API round
+// trips instead of queueing behind them.
+for (const match of router.matchRoutes(router.latestLocation)) {
+  void router.loadRouteChunk(router.looseRoutesById[match.routeId])
+}
+
 if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
   root.render(

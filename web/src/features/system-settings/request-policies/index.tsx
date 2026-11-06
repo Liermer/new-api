@@ -18,10 +18,8 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { SettingsPage } from '../components/settings-page'
 import { defaultRequestPolicySettings } from './defaults'
-import {
-  getPolicySectionContent,
-  getPolicySectionMeta,
-} from './section-registry'
+import { getPolicySectionMeta } from './section-nav'
+import { getPolicySectionContent } from './section-registry'
 
 export function RequestPolicies() {
   return (

@@ -24,7 +24,6 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
 import { ErrorState } from '@/components/error-state'
-import { LanguageSwitcher } from '@/components/language-switcher'
 import { LoadingState } from '@/components/loading-state'
 import {
   Card,
@@ -40,6 +39,7 @@ import { useSystemConfig } from '@/hooks/use-system-config'
 import { handleServerError } from '@/lib/handle-server-error'
 import { accountPasswordSchema } from '@/lib/password-policy'
 import { requireServerSuccess } from '@/lib/server-error-message'
+import { STATUS_QUERY_KEY } from '@/lib/status-query'
 import { cn } from '@/lib/utils'
 
 import { buildSetupPayload, getSetupStatus, submitSetup } from './api'
@@ -110,6 +110,8 @@ export function SetupWizard() {
       if (response.success) {
         toast.success(t('System initialized successfully! Redirecting…'))
         await queryClient.invalidateQueries({ queryKey: ['setup-status'] })
+        // Route guards read `setup` from the shared status, which just changed.
+        await queryClient.invalidateQueries({ queryKey: STATUS_QUERY_KEY })
         setTimeout(() => {
           navigate({ to: '/' })
         }, 1200)
@@ -284,9 +286,6 @@ export function SetupWizard() {
 
   return (
     <div className='bg-muted/40 relative min-h-svh py-10'>
-      <div className='absolute top-4 right-4 sm:top-6 sm:right-6'>
-        <LanguageSwitcher />
-      </div>
       <div className='container mx-auto flex max-w-5xl flex-col gap-8 px-4 sm:px-6'>
         <div className='flex flex-col items-center gap-3'>
           <div className='relative h-12 w-12'>

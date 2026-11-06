@@ -25,10 +25,40 @@ type precompressedFile struct {
 	err         error
 }
 
-// ServeFrontendFiles serves files from the embedded frontend build. The build
-// never changes while the process runs, so each file is gzip-compressed once
-// and the bytes are reused, instead of recompressing multi-megabyte chunks on
-// every request. The cache holds at most one entry per build file. Clients
+// serveBrotliFile answers with the brotli encoding the frontend build wrote next
+// to the file, and reports whether there was one to send.
+func serveBrotliFile(c *gin.Context, frontendFS static.ServeFileSystem, urlPath string) bool {
+	contentType := mime.TypeByExtension(path.Ext(urlPath))
+	if contentType == "" {
+		return false
+	}
+	f, err := frontendFS.Open(urlPath + ".br")
+	if err != nil {
+		return false
+	}
+	defer f.Close()
+	info, err := f.Stat()
+	if err != nil || info.IsDir() {
+		return false
+	}
+
+	header := c.Writer.Header()
+	header.Set("Content-Encoding", "br")
+	header.Set("Vary", "Accept-Encoding")
+	header.Set("Content-Type", contentType)
+	header.Set("Content-Length", strconv.FormatInt(info.Size(), 10))
+	c.Writer.WriteHeader(http.StatusOK)
+	if c.Request.Method != http.MethodHead {
+		_, _ = io.Copy(c.Writer, f)
+	}
+	return true
+}
+
+// ServeFrontendFiles serves files from the embedded frontend build. Clients that
+// accept brotli get the encoding precompressed at build time. For the rest the
+// build never changes while the process runs, so each file is gzip-compressed
+// once and the bytes are reused, instead of recompressing multi-megabyte chunks
+// on every request. The cache holds at most one entry per build file. Clients
 // without gzip, the image types the gzip middleware skips, directories, and
 // the index.html redirect keep using http.FileServer.
 func ServeFrontendFiles(frontendFS static.ServeFileSystem) gin.HandlerFunc {
@@ -40,7 +70,11 @@ func ServeFrontendFiles(frontendFS static.ServeFileSystem) gin.HandlerFunc {
 			return
 		}
 		c.Abort()
-		if !strings.Contains(c.GetHeader("Accept-Encoding"), "gzip") ||
+		acceptEncoding := c.GetHeader("Accept-Encoding")
+		if strings.Contains(acceptEncoding, "br") && serveBrotliFile(c, frontendFS, urlPath) {
+			return
+		}
+		if !strings.Contains(acceptEncoding, "gzip") ||
 			ginGzip.DefaultExcludedExtentions.Contains(path.Ext(urlPath)) ||
 			strings.HasSuffix(urlPath, "/index.html") {
 			fileServer.ServeHTTP(c.Writer, c.Request)

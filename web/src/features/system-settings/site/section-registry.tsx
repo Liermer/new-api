@@ -27,12 +27,12 @@ import { HeaderNavigationSection } from '../maintenance/header-navigation-sectio
 import { NoticeSection } from '../maintenance/notice-section'
 import { SidebarModulesSection } from '../maintenance/sidebar-modules-section'
 import type { SiteSettings } from '../types'
-import { createSectionRegistry } from '../utils/section-registry'
+import { createSectionContent } from '../utils/section-registry'
+import type { SiteSectionId } from './section-nav'
 
 const SITE_SECTIONS = [
   {
     id: 'system-info',
-    titleKey: 'System Information',
     build: (settings: SiteSettings) => (
       <SystemInfoSection
         defaultValues={{
@@ -56,14 +56,12 @@ const SITE_SECTIONS = [
   },
   {
     id: 'notice',
-    titleKey: 'System Notice',
     build: (settings: SiteSettings) => (
       <NoticeSection defaultValue={settings.Notice ?? ''} />
     ),
   },
   {
     id: 'header-navigation',
-    titleKey: 'Header navigation',
     build: (settings: SiteSettings) => {
       const headerNavConfig = parseHeaderNavModules(settings.HeaderNavModules)
       const headerNavSerialized = serializeHeaderNavModules(headerNavConfig)
@@ -77,7 +75,6 @@ const SITE_SECTIONS = [
   },
   {
     id: 'sidebar-modules',
-    titleKey: 'Sidebar modules',
     build: (settings: SiteSettings) => {
       const sidebarConfig = parseSidebarModulesAdmin(
         settings.SidebarModulesAdmin
@@ -93,17 +90,7 @@ const SITE_SECTIONS = [
   },
 ] as const
 
-export type SiteSectionId = (typeof SITE_SECTIONS)[number]['id']
-
-const siteRegistry = createSectionRegistry<SiteSectionId, SiteSettings>({
-  sections: SITE_SECTIONS,
-  defaultSection: 'system-info',
-  basePath: '/system-settings/site',
-  urlStyle: 'path',
-})
-
-export const SITE_SECTION_IDS = siteRegistry.sectionIds
-export const SITE_DEFAULT_SECTION = siteRegistry.defaultSection
-export const getSiteSectionNavItems = siteRegistry.getSectionNavItems
-export const getSiteSectionContent = siteRegistry.getSectionContent
-export const getSiteSectionMeta = siteRegistry.getSectionMeta
+export const getSiteSectionContent = createSectionContent<
+  SiteSectionId,
+  SiteSettings
+>(SITE_SECTIONS)

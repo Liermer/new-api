@@ -30,6 +30,7 @@ import {
 import {
   STATUS_QUERY_KEY,
   ensureStatus,
+  needsSetupRedirect,
   statusQueryOptions,
 } from '@/lib/status-query'
 import { useSystemConfigStore } from '@/stores/system-config-store'
@@ -262,4 +263,23 @@ describe('module guard status freshness', () => {
       })
     }
   )
+})
+
+describe('setup redirect decision', () => {
+  test('sends an uninitialized site to the wizard from any other page', () => {
+    expect(needsSetupRedirect({ setup: false }, '/')).toBe(true)
+    expect(needsSetupRedirect({ setup: false }, '/dashboard/overview')).toBe(
+      true
+    )
+  })
+
+  test('stays put on the wizard itself so it cannot redirect in a loop', () => {
+    expect(needsSetupRedirect({ setup: false }, '/setup')).toBe(false)
+  })
+
+  test('stays put when the site is initialized or the status is unknown', () => {
+    expect(needsSetupRedirect({ setup: true }, '/')).toBe(false)
+    expect(needsSetupRedirect({}, '/')).toBe(false)
+    expect(needsSetupRedirect(null, '/')).toBe(false)
+  })
 })

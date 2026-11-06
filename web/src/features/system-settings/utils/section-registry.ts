@@ -20,23 +20,33 @@ import type { TFunction } from 'i18next'
 import type { ReactNode } from 'react'
 
 /**
- * Section definition for settings pages
+ * Section identity: what routes and the sidebar need to know about a section.
  */
-export type SectionDefinition<TSettings, TExtraArgs extends unknown[] = []> = {
+export type SectionNavDefinition = {
   id: string
   titleKey: string
-  build: (settings: TSettings, ...extraArgs: TExtraArgs) => ReactNode
 }
 
 /**
- * Section registry configuration
+ * Section body for settings pages
  */
-export type SectionRegistryConfig<
+export type SectionContentDefinition<
   TSectionId extends string,
   TSettings,
   TExtraArgs extends unknown[] = [],
 > = {
-  sections: readonly SectionDefinition<TSettings, TExtraArgs>[]
+  id: TSectionId
+  build: (settings: TSettings, ...extraArgs: TExtraArgs) => ReactNode
+}
+
+/**
+ * Section navigation configuration
+ */
+export type SectionNavConfig<
+  TSectionId extends string,
+  TSection extends SectionNavDefinition = SectionNavDefinition,
+> = {
+  sections: readonly TSection[]
   defaultSection: TSectionId
   basePath: string
   /** 'query' = `${basePath}?section=${id}`, 'path' = `${basePath}/${id}` */
@@ -44,20 +54,21 @@ export type SectionRegistryConfig<
 }
 
 /**
- * Create a section registry with helper functions
+ * Create section navigation helpers.
+ *
+ * Route guards and the sidebar run on the initial load, so keep this free of
+ * section components. Bodies belong in `createSectionContent`, whose module is
+ * only reached from a lazy route component.
  */
-export function createSectionRegistry<
+export function createSectionNav<
   TSectionId extends string,
-  TSettings,
-  TExtraArgs extends unknown[] = [],
->(config: SectionRegistryConfig<TSectionId, TSettings, TExtraArgs>) {
+  TSection extends SectionNavDefinition = SectionNavDefinition,
+>(config: SectionNavConfig<TSectionId, TSection>) {
   const { sections, defaultSection, basePath, urlStyle = 'query' } = config
 
-  type SectionId = TSectionId
-
   const sectionIds = sections.map((section) => section.id) as [
-    SectionId,
-    ...SectionId[],
+    TSectionId,
+    ...TSectionId[],
   ]
 
   /**
@@ -65,7 +76,7 @@ export function createSectionRegistry<
    */
   function getSectionNavItems(
     t: TFunction,
-    badges?: Partial<Record<SectionId, string>>
+    badges?: Partial<Record<TSectionId, string>>
   ) {
     return sections.map((section) => ({
       title: t(section.titleKey),
@@ -73,32 +84,43 @@ export function createSectionRegistry<
         urlStyle === 'path'
           ? `${basePath}/${section.id}`
           : `${basePath}?section=${section.id}`,
-      badge: badges?.[section.id as SectionId],
+      badge: badges?.[section.id as TSectionId],
     }))
   }
 
-  /**
-   * Get section content by section ID
-   */
-  function getSectionContent(
-    sectionId: SectionId,
-    settings: TSettings,
-    ...extraArgs: TExtraArgs
-  ) {
-    return getSectionMeta(sectionId).build(settings, ...extraArgs)
-  }
-
-  function getSectionMeta(sectionId: SectionId) {
-    const section =
-      sections.find((item) => item.id === sectionId) ?? sections[0]
-    return section
+  function getSectionMeta(sectionId: TSectionId) {
+    return sections.find((item) => item.id === sectionId) ?? sections[0]
   }
 
   return {
     sectionIds,
     defaultSection,
     getSectionNavItems,
-    getSectionContent,
     getSectionMeta,
+  }
+}
+
+/**
+ * Create the lookup that renders a section body by section ID
+ */
+export function createSectionContent<
+  TSectionId extends string,
+  TSettings,
+  TExtraArgs extends unknown[] = [],
+>(
+  sections: readonly SectionContentDefinition<
+    TSectionId,
+    TSettings,
+    TExtraArgs
+  >[]
+) {
+  return function getSectionContent(
+    sectionId: TSectionId,
+    settings: TSettings,
+    ...extraArgs: TExtraArgs
+  ) {
+    const section =
+      sections.find((item) => item.id === sectionId) ?? sections[0]
+    return section.build(settings, ...extraArgs)
   }
 }

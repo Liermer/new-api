@@ -35,8 +35,9 @@ This is an AI API gateway/proxy built with Go. It aggregates 40+ upstream AI pro
 - Server log lines are English text passed through `common.LogText`; `DEFAULT_LANGUAGE=zh-CN` prints the Chinese text of the lines that have one in `common/log_text.zh-CN.json`, and is the language of backend messages for a reader who states none
 
 ### Frontend (`web/src/i18n/`)
-- Library: `i18next` + `react-i18next` + `i18next-browser-languagedetector`
-- Languages: en (base), zh (fallback), zh-TW, fr, ru, ja, vi
+- Library: `i18next` + `react-i18next`
+- The web UI renders Simplified Chinese only (`zhCN`, from `zh.json`). There is no language detection or switcher, and `zh.json` is the only locale in the build.
+- Locale files: en (base), zh, zh-TW, fr, ru, ja, vi. All seven stay in sync through `bun run i18n:sync`; the others are kept for tooling and tests.
 - Translation files: `web/src/i18n/locales/{lang}.json` — flat JSON, keys are English source strings
 - Usage: `useTranslation()` hook, call `t('English key')` in components
 - CLI tools: `bun run i18n:sync` (from `web/`)

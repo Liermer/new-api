@@ -24,12 +24,12 @@ import { LogSettingsSection } from '../maintenance/log-settings-section'
 import { PerformanceSection } from '../maintenance/performance-section'
 import { UpdateCheckerSection } from '../maintenance/update-checker-section'
 import type { OperationsSettings } from '../types'
-import { createSectionRegistry } from '../utils/section-registry'
+import { createSectionContent } from '../utils/section-registry'
+import type { OperationsSectionId } from './section-nav'
 
 const OPERATIONS_SECTIONS = [
   {
     id: 'behavior',
-    titleKey: 'System Behavior',
     build: (settings: OperationsSettings) => (
       <SystemBehaviorSection
         defaultValues={{
@@ -42,7 +42,6 @@ const OPERATIONS_SECTIONS = [
   },
   {
     id: 'alerts',
-    titleKey: 'Model performance metrics',
     build: (settings: OperationsSettings) => (
       <MonitoringSettingsSection
         defaultValues={{
@@ -60,7 +59,6 @@ const OPERATIONS_SECTIONS = [
   },
   {
     id: 'email',
-    titleKey: 'Email & Notifications',
     build: (settings: OperationsSettings) => (
       <EmailSettingsSection
         defaultValues={{
@@ -85,7 +83,6 @@ const OPERATIONS_SECTIONS = [
   },
   {
     id: 'worker',
-    titleKey: 'Worker Proxy',
     build: (settings: OperationsSettings) => (
       <WorkerSettingsSection
         defaultValues={{
@@ -99,7 +96,6 @@ const OPERATIONS_SECTIONS = [
   },
   {
     id: 'logs',
-    titleKey: 'Log Maintenance',
     build: (settings: OperationsSettings) => (
       <LogSettingsSection
         defaultValues={{
@@ -114,7 +110,6 @@ const OPERATIONS_SECTIONS = [
   },
   {
     id: 'performance',
-    titleKey: 'Performance',
     build: (settings: OperationsSettings) => (
       <PerformanceSection
         defaultValues={{
@@ -140,7 +135,6 @@ const OPERATIONS_SECTIONS = [
   },
   {
     id: 'update-checker',
-    titleKey: 'System maintenance',
     build: (
       _settings: OperationsSettings,
       currentVersion?: string | null,
@@ -154,22 +148,8 @@ const OPERATIONS_SECTIONS = [
   },
 ] as const
 
-export type OperationsSectionId = (typeof OPERATIONS_SECTIONS)[number]['id']
-
-const operationsRegistry = createSectionRegistry<
+export const getOperationsSectionContent = createSectionContent<
   OperationsSectionId,
   OperationsSettings,
   [string | null | undefined, number | null | undefined]
->({
-  sections: OPERATIONS_SECTIONS,
-  defaultSection: 'behavior',
-  basePath: '/system-settings/operations',
-  urlStyle: 'path',
-})
-
-export const OPERATIONS_SECTION_IDS = operationsRegistry.sectionIds
-export const OPERATIONS_DEFAULT_SECTION = operationsRegistry.defaultSection
-export const getOperationsSectionNavItems =
-  operationsRegistry.getSectionNavItems
-export const getOperationsSectionContent = operationsRegistry.getSectionContent
-export const getOperationsSectionMeta = operationsRegistry.getSectionMeta
+>(OPERATIONS_SECTIONS)

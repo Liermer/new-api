@@ -20,10 +20,11 @@ import { createFileRoute, redirect } from '@tanstack/react-router'
 
 import { AuthenticatedLayout } from '@/components/layout'
 import { resolveAuthentication } from '@/lib/auth-session'
+import { needsSetupRedirect, statusQueryOptions } from '@/lib/status-query'
 import { useAuthStore } from '@/stores/auth-store'
 
 export const Route = createFileRoute('/_authenticated')({
-  beforeLoad: async ({ location }) => {
+  beforeLoad: async ({ context, location }) => {
     // The root guard may have skipped its refresh because no session hint was
     // present. That skip is an optimization for public pages and must not
     // decide a protected route, so resolve against the server before
@@ -33,6 +34,14 @@ export const Route = createFileRoute('/_authenticated')({
     const { auth } = useAuthStore.getState()
 
     if (!auth.user || !auth.accessToken) {
+      // An uninitialized site has no account to sign in to.
+      const status = await context.queryClient
+        .fetchQuery(statusQueryOptions)
+        .catch(() => null)
+      if (needsSetupRedirect(status, location.pathname)) {
+        throw redirect({ to: '/setup' })
+      }
+
       throw redirect({
         to: '/sign-in',
         search: { redirect: location.href },

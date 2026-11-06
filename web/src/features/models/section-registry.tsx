@@ -16,7 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { createSectionRegistry } from '@/features/system-settings/utils/section-registry'
+import { createSectionNav } from '@/features/system-settings/utils/section-registry'
 
 /**
  * Models page section definitions
@@ -25,27 +25,20 @@ const MODELS_SECTIONS = [
   {
     id: 'metadata',
     titleKey: 'Models',
-    build: () => null, // Content is rendered directly in the page component
   },
   {
     id: 'vendors',
     titleKey: 'Vendors',
-    build: () => null,
   },
   {
     id: 'deployments',
     titleKey: 'Deployments',
-    build: () => null, // Content is rendered directly in the page component
   },
 ] as const
 
 export type ModelsSectionId = (typeof MODELS_SECTIONS)[number]['id']
 
-const modelsRegistry = createSectionRegistry<
-  ModelsSectionId,
-  Record<string, never>,
-  []
->({
+const modelsRegistry = createSectionNav<ModelsSectionId>({
   sections: MODELS_SECTIONS,
   defaultSection: 'metadata',
   basePath: '/models',

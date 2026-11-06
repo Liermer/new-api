@@ -18,11 +18,8 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { SettingsPage } from '../components/settings-page'
 import type { ContentSettings, SystemOption } from '../types'
-import {
-  CONTENT_DEFAULT_SECTION,
-  getContentSectionContent,
-  getContentSectionMeta,
-} from './section-registry.tsx'
+import { CONTENT_DEFAULT_SECTION, getContentSectionMeta } from './section-nav'
+import { getContentSectionContent } from './section-registry.tsx'
 
 const defaultContentSettings: ContentSettings = {
   'console_setting.api_info': '[]',

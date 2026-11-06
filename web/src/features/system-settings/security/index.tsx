@@ -18,11 +18,8 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { SettingsPage } from '../components/settings-page'
 import type { SecuritySettings } from '../types'
-import {
-  SECURITY_DEFAULT_SECTION,
-  getSecuritySectionContent,
-  getSecuritySectionMeta,
-} from './section-registry.tsx'
+import { SECURITY_DEFAULT_SECTION, getSecuritySectionMeta } from './section-nav'
+import { getSecuritySectionContent } from './section-registry.tsx'
 
 const defaultSecuritySettings: SecuritySettings = {
   ModelRequestRateLimitEnabled: false,
