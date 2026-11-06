@@ -33,7 +33,12 @@
     </script>
     <!--umami-->
     <!--Google Analytics-->
-    <!-- 首屏骨架：跨境链路 TTFB 约 1s，JS 到齐前先给出可感知的界面，避免白屏 -->
+    <!--
+      首屏骨架：跨境回源 TTFB 约 0.9s，JS 到齐前先给出可感知的界面。
+      必须放在 #root 之外 —— main.tsx 里有 `if (!rootElement.innerHTML)` 守卫，
+      往 #root 里塞任何内容都会导致 React 永不挂载（整站空白）。
+      React 挂载后 #root 非空，由下面的 CSS 规则自动隐藏骨架。
+    -->
     <style>
       html,
       body {
@@ -92,6 +97,10 @@
           transform: translateX(330%);
         }
       }
+      /* React 挂载后 #root 非空，骨架自动让位 */
+      #root:not(:empty) + #app-splash {
+        display: none;
+      }
       @media (prefers-reduced-motion: reduce) {
         .app-splash__bar span {
           animation: none;
@@ -103,11 +112,10 @@
   </head>
 
   <body>
-    <div id="root" translate="no" class="notranslate">
-      <div class="app-splash" aria-hidden="true">
-        <div class="app-splash__mark">PorticoLLM</div>
-        <div class="app-splash__bar"><span></span></div>
-      </div>
+    <div id="root" translate="no" class="notranslate"></div>
+    <div id="app-splash" class="app-splash" aria-hidden="true">
+      <div class="app-splash__mark">PorticoLLM</div>
+      <div class="app-splash__bar"><span></span></div>
     </div>
   </body>
 </html>
